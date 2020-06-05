@@ -1,0 +1,9 @@
+<?xml version="1.0"?>
+<menu>
+  <item>
+    <path>civicrm/uepalalmanach</path>
+    <page_callback>CRM_Almanach_Page_UepalAlmanach</page_callback>
+    <title>UepalAlmanach</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+</menu>
