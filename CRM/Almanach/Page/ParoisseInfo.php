@@ -20,6 +20,9 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     try {
       $this->checkPermissionAndRetrieveParoisse();
 
+      // calculate num. presbytéraux
+      $numPresbyt = $this->getNumPresbyt();
+
       // get president, vice-president...
       $this->assign('managementArr', $this->getParoisseManagement());
 
@@ -29,10 +32,24 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
 
       // get elected members
       $relType = $this->config->getRelationshipType_estMembreEluDe();
-      $this->assign('electedMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a'])));
+      $this->assign('electedMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a']), $numPresbyt));
+
+      // get invited members
+      $relType = $this->config->getRelationshipType_estMembreInviteDe();
+      $this->assign('invitedMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a'])));
+
+      // get coopted members
+      $relType = $this->config->getRelationshipType_estMembreCoopteDe();
+      $this->assign('cooptedMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a'])));
 
       $this->assign('numParoissiens', $this->paroisse[$this->customFieldName_numParoissiens]);
       $this->assign('numElecteurs', $this->paroisse[$this->customFieldName_numElecteurs]);
+      if ($numPresbyt > 0) {
+        $this->assign('numPresbyt', $numPresbyt);
+      }
+      else {
+        $this->assign('numPresbyt', '');
+      }
 
       CRM_Utils_System::setTitle('Paroisse : ' . $this->paroisse['organization_name']);
     }
@@ -65,8 +82,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
         throw new Exception("L'information n'est pas disponible.");
       }
       elseif (CRM_Contact_BAO_Contact_Utils::validChecksum($cid, $cs) !== TRUE) {
-// TODO TIJDELIJK!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-                //throw new Exception("Le lien que vous avez utilisé n'est plus actif.");
+        throw new Exception("Le lien que vous avez utilisé n'est plus actif.");
       }
 
       // get the paroisse of this user
@@ -86,6 +102,31 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     else {
       throw new Exception("L'information n'est pas disponible.");
     }
+  }
+
+  private function getNumPresbyt() {
+    $numPresbyt = 0;
+    $n = (int)$this->paroisse[$this->customFieldName_numElecteurs];
+    if ($n < 500) {
+      $numPresbyt = 6;
+    }
+    elseif ($n < 800) {
+      $numPresbyt = 8;
+    }
+    elseif ($n < 1500) {
+      $numPresbyt = 10;
+    }
+    elseif ($n < 2500) {
+      $numPresbyt = 12;
+    }
+    elseif ($n < 5000) {
+      $numPresbyt = 14;
+    }
+    elseif ($n >= 5000) {
+      $numPresbyt = 16;
+    }
+
+    return $numPresbyt;
   }
 
   private function getParoisseManagement() {
@@ -128,8 +169,9 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
           ex_r.end_date desc
       ) ex_relationships
       , e.email
-      , p1.phone phone_fixed
-      , p2.phone phone_mobile
+      , p.phone phone
+      , concat(a.street_address, ', ', a.city) address
+      , c.birth_date
       from
         civicrm_relationship r
       inner join
@@ -137,9 +179,9 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       left outer join
-        civicrm_phone p1 on p1.contact_id = c.id and p1.phone_type_id = 1 and p1.location_type_id = 1
+        civicrm_phone p on p.contact_id = c.id and p.is_primary = 1
       left outer join
-        civicrm_phone p2 on p2.contact_id = c.id and p2.phone_type_id = 2 and p2.location_type_id = 1
+        civicrm_address a on a.contact_id = c.id and a.is_primary = 1
       where
         r.relationship_type_id = $relTypeId
         and r.is_active = 1

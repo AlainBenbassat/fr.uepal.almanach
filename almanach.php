@@ -3,10 +3,28 @@
 require_once 'almanach.civix.php';
 use CRM_Almanach_ExtensionUtil as E;
 
+function almanach_civicrm_summaryActions(&$actions, $contactID) {
+  // check if it's a paroisse
+  if ($contactID > 0) {
+    $sql = "select contact_sub_type from civicrm_contact where id = $contactID";
+    $contactSubType = CRM_Core_DAO::singleValueQuery($sql);
+    if ($contactSubType == CRM_Core_DAO::VALUE_SEPARATOR . 'paroisse' . CRM_Core_DAO::VALUE_SEPARATOR) {
+      // add link to paroisse info page
+      $actions['otherActions']['infoparoisse'] = [
+        'title' => 'Info paroisse',
+        'weight' => 999,
+        'ref' => 'info-paroisse',
+        'key' => 'infoparoisse',
+        'href' => '../paroisse-info?reset=1&paroisse=' . $contactID,
+      ];
+    }
+  }
+}
+
 /**
  * Implements hook_civicrm_config().
  *
- * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_config/ 
+ * @link https://docs.civicrm.org/dev/en/latest/hooks/hook_civicrm_config/
  */
 function almanach_civicrm_config(&$config) {
   _almanach_civix_civicrm_config($config);
