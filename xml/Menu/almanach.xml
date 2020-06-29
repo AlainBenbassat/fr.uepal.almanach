@@ -6,4 +6,10 @@
     <title>UepalAlmanach</title>
     <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/paroisse-info</path>
+    <page_callback>CRM_Almanach_Page_ParoisseInfo</page_callback>
+    <title>ParoisseInfo</title>
+    <access_arguments>*always allow*</access_arguments>
+  </item>
 </menu>
