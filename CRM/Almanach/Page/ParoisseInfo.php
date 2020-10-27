@@ -106,7 +106,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
 
   private function getNumPresbyt() {
     $numPresbyt = 0;
-    $n = (int)$this->paroisse[$this->customFieldName_numElecteurs];
+    $n = (int)$this->paroisse[$this->customFieldName_numParoissiens];
     if ($n < 500) {
       $numPresbyt = 6;
     }
