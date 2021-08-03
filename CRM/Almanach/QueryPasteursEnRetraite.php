@@ -20,6 +20,10 @@ class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
         'name' => 'supplemental_address_1',
       ],
       [
+        'label' => "Complément d'adresse 2",
+        'name' => 'supplemental_address_2',
+      ],
+      [
         'label' => 'Rue',
         'name' => 'street_address',
       ],
