@@ -16,10 +16,6 @@ class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
         'dbAlias' => "concat('(',ifnull(year(birth_date),'-'),'/',ifnull(annee_entree_ministere,'-'),'/',ifnull(annee_consecration,'-'),'/',ifnull(annee_poste_actuel,'-'),')')",
       ],
       [
-        'label' => 'Poste actuel',
-        'name' => 'job_title',
-      ],
-      [
         'label' => "Complément d'adresse",
         'name' => 'supplemental_address_1',
       ],
