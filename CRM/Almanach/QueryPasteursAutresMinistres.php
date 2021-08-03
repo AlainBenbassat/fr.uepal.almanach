@@ -20,6 +20,10 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
         'name' => 'job_title',
       ],
       [
+        'label' => "Complément d'adresse",
+        'name' => 'supplemental_address_1',
+      ],
+      [
         'label' => 'Rue',
         'name' => 'street_address',
       ],

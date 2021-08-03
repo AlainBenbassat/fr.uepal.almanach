@@ -10,7 +10,9 @@
           <p>
               {foreach from=$query.fields item=field}
                 {assign var=fieldName value=$field.name}
-                {$record.$fieldName}<br>
+                {if $record.$fieldName}
+                  {$record.$fieldName}<br>
+                {/if}
               {/foreach}
               <br>
           </p>
