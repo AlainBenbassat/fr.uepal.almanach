@@ -15,7 +15,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       [
         'label' => 'Années',
         'name' => "annee",
-        'dbAlias' => "concat('(',annee_consecration,'/',annee_entree_ministere,'/',annee_poste_actuel,')')",
+        'dbAlias' => "concat('(',year(birth_date),'/',annee_entree_ministere,'/',annee_consecration,'/',annee_poste_actuel,')')",
       ],
       [
         'label' => 'Poste actuel',
@@ -65,6 +65,8 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
         is_deleted = 0
       and
         is_deceased = 0
+      and
+        statut = 1
       order by
         sort_name
     ";
