@@ -1,14 +1,14 @@
 <?php
 
-class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
+class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
   public function __construct() {
-    $this->title = 'Pasteur•es et autres ministres de l’UEPAL';
+    $this->title = "Pasteurs en retraite de l’Union des Églises protestantes d’Alsace et de Lorraine";
 
     $this->fields = [
       [
         'label' => 'Nom',
         'name' => 'name',
-        'dbAlias' => "concat(last_name, ' ', first_name)",
+        'dbAlias' => "concat(last_name, ' ', replace(first_name, ' e.r.', ''))",
       ],
       [
         'label' => 'Années',
@@ -70,7 +70,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       and
         is_deceased = 0
       and
-        statut = 1
+        statut = 3
       group by
         $groupByFields
       order by

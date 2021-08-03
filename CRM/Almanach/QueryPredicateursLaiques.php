@@ -1,23 +1,16 @@
 <?php
 
-class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
+class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
+  const REL_TYPE_ID_est_predicateur_laique_pour = 27;
+
   public function __construct() {
-    $this->title = 'Pasteur•es et autres ministres de l’UEPAL';
+    $this->title = 'Prédicateurs laïques';
 
     $this->fields = [
       [
         'label' => 'Nom',
         'name' => 'name',
         'dbAlias' => "concat(last_name, ' ', first_name)",
-      ],
-      [
-        'label' => 'Années',
-        'name' => "annee",
-        'dbAlias' => "concat('(',ifnull(year(birth_date),'-'),'/',ifnull(annee_entree_ministere,'-'),'/',ifnull(annee_consecration,'-'),'/',ifnull(annee_poste_actuel,'-'),')')",
-      ],
-      [
-        'label' => 'Poste actuel',
-        'name' => 'job_title',
       ],
       [
         'label' => "Complément d'adresse",
@@ -55,8 +48,8 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
         $fields
       from
         civicrm_contact c
-      left outer join
-        civicrm_value_ministre_detail md on md.entity_id = c.id
+      inner join
+        civicrm_relationship r on r.contact_id_a = c.id and r.relationship_type_id = " . self::REL_TYPE_ID_est_predicateur_laique_pour . "
       left outer join
         civicrm_address a on a.contact_id = c.id and a.is_primary = 1
       left outer join
@@ -64,13 +57,11 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       where
-        contact_sub_type like '%Ministre%'
+        r.is_active = 1
       and
         is_deleted = 0
       and
         is_deceased = 0
-      and
-        statut = 1
       group by
         $groupByFields
       order by
