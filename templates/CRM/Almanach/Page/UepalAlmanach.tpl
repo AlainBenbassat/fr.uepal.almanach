@@ -1,3 +1,5 @@
+<p>Format : liste | <a href="uepalalmanach?layout=block">blocs</a></p>
+
 {foreach from=$queries item=query}
 
   <h3>{$query.title}</h3>
@@ -29,4 +31,5 @@
   </div>
 
 {/foreach}
+
 

@@ -12,8 +12,17 @@ class CRM_Almanach_Page_UepalAlmanach extends CRM_Core_Page {
 
     $this->assign('queries', $queries);
     parent::run();
+  }
 
-    parent::run();
+  public function getTemplateFileName() {
+    $layout = CRM_Utils_Request::retrieve('layout', 'String');
+    if ($layout == 'block') {
+      $templateFile = "CRM/Almanach/Page/UepalAlmanachBlock.tpl";
+      return $templateFile;
+    }
+    else {
+      return parent::getTemplateFileName();
+    }
   }
 
   private function toArrayForTemplate($q) {

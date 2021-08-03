@@ -1,16 +1,14 @@
 <?php
 
 class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
-  public function __construct() {
+  public function __construct($format = 'list') {
     $this->title = 'Pasteur•es et autres ministres de l’UEPAL';
+
     $this->fields = [
       [
         'label' => 'Nom',
-        'name' => 'last_name',
-      ],
-      [
-        'label' => 'Prénom',
-        'name' => 'first_name',
+        'name' => 'name',
+        'dbAlias' => "concat(last_name, ' ', first_name)",
       ],
       [
         'label' => 'Années',
@@ -33,6 +31,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       [
         'label' => 'Tél',
         'name' => 'phone',
+        'dbAlias' => "group_concat(phone ORDER BY phone SEPARATOR ' - ')",
       ],
       [
         'label' => 'E-mail',
@@ -45,6 +44,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
 
   private function getQuery() {
     $fields = $this->getFieldListAsString();
+    $groupByFields = $this->getGroupByFieldsAsString('phone');
 
     $sql = "
       select
@@ -56,7 +56,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       left outer join
         civicrm_address a on a.contact_id = c.id and a.is_primary = 1
       left outer join
-        civicrm_phone p on p.contact_id = c.id and p.is_primary = 1
+        civicrm_phone p on p.contact_id = c.id
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       where
@@ -67,6 +67,8 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
         is_deceased = 0
       and
         statut = 1
+      group by
+        $groupByFields
       order by
         sort_name
     ";

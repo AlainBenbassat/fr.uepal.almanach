@@ -33,6 +33,27 @@ class CRM_Almanach_Query {
     return $fieldList;
   }
 
+  public function getGroupByFieldsAsString($excludeCol) {
+    $fieldList = '';
+
+    foreach ($this->fields as $field) {
+      if ($field['name'] != $excludeCol) {
+        if ($fieldList) {
+          $fieldList .= ',';
+        }
+
+        if (isset($field['dbAlias'])) {
+          $fieldList .= $field['dbAlias'];
+        }
+        else {
+          $fieldList .= $field['name'];
+        }
+      }
+    }
+
+    return $fieldList;
+  }
+
   private function executeQuery() {
     $dao = CRM_Core_DAO::executeQuery($this->query);
     $this->records = $dao->fetchAll();
