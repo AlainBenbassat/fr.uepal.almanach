@@ -15,7 +15,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       [
         'label' => 'Années',
         'name' => "annee",
-        'dbAlias' => "concat('(',year(birth_date),'/',annee_entree_ministere,'/',annee_consecration,'/',annee_poste_actuel,')')",
+        'dbAlias' => "concat('(',ifnull(year(birth_date),'-'),'/',ifnull(annee_entree_ministere,'-'),'/',ifnull(annee_consecration,'-'),'/',ifnull(annee_poste_actuel,'-'),')')",
       ],
       [
         'label' => 'Poste actuel',
