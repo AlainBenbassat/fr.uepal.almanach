@@ -6,18 +6,38 @@ use CRM_Almanach_ExtensionUtil as E;
 function almanach_civicrm_summaryActions(&$actions, $contactID) {
   // check if it's a paroisse
   if ($contactID > 0) {
-    $sql = "select contact_sub_type from civicrm_contact where id = $contactID";
-    $contactSubType = CRM_Core_DAO::singleValueQuery($sql);
-    if ($contactSubType == CRM_Core_DAO::VALUE_SEPARATOR . 'paroisse' . CRM_Core_DAO::VALUE_SEPARATOR) {
+    $contactSubType = almanach_getContactSubType($contactID);
+    if (almanach_isParoisseConsistoireInspection($contactSubType)) {
+      $href = almanach_getHref($contactSubType, $contactID);
+
       // add link to paroisse info page
       $actions['otherActions']['infoparoisse'] = [
         'title' => 'Info paroisse',
         'weight' => 999,
         'ref' => 'info-paroisse',
         'key' => 'infoparoisse',
-        'href' => '../paroisse-info?reset=1&paroisse=' . $contactID,
+        'href' => $href,
       ];
     }
+  }
+}
+
+function almanach_getContactSubType($contactID) {
+  $sql = "select contact_sub_type from civicrm_contact where id = $contactID";
+  $contactSubType = CRM_Core_DAO::singleValueQuery($sql);
+  return str_replace(CRM_Core_DAO::VALUE_SEPARATOR, '', $contactSubType);
+}
+
+function almanach_getHref($contactSubType, $contactID) {
+  return "../paroisse-info?reset=1&$contactSubType=$contactID";
+}
+
+function almanach_isParoisseConsistoireInspection($contactSubType) {
+  if ($contactSubType == 'paroisse' || $contactSubType == 'consistoire_lutherien' || $contactSubType == 'inspection_consistoire_reforme') {
+    return TRUE;
+  }
+  else {
+    return FALSE;
   }
 }
 

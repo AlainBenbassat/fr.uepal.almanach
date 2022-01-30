@@ -3,10 +3,12 @@ use CRM_Almanach_ExtensionUtil as E;
 
 class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   private $config;
-  private $paroisseId = 0;
-  private $paroisse;
   private $customFieldName_numParoissiens = '';
   private $customFieldName_numElecteurs = '';
+
+  private $paroisseId = 0;
+  private $consistoireLutherienId = 0;
+  private $inspectionConsistoireReformeId = 0;
 
   public function __construct($title = NULL, $mode = NULL) {
     $this->config = new CRM_Uepalconfig_Config();
@@ -18,50 +20,220 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
 
   public function run() {
     try {
-      $this->checkPermissionAndRetrieveParoisse();
+      $this->checkPermissionAndRetrieveIds();
 
-      // calculate num. presbytéraux
-      $numPresbyt = $this->getNumPresbyt();
+      CRM_Utils_System::setTitle('');
 
-      // get president, vice-president...
-      $this->assign('managementArr', $this->getParoisseManagement());
-
-      // get members by right
-      $relType = $this->config->getRelationshipType_estMembreDeDroitDe();
-      $this->assign('rightMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a'])));
-
-      // get elected members
-      $relType = $this->config->getRelationshipType_estMembreEluDe();
-      $this->assign('electedMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a']), $numPresbyt));
-
-      // get invited members
-      $relType = $this->config->getRelationshipType_estMembreInviteDe();
-      $this->assign('invitedMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a'])));
-
-      // get coopted members
-      $relType = $this->config->getRelationshipType_estMembreCoopteDe();
-      $this->assign('cooptedMembersArr', $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a'])));
-
-      $this->assign('numParoissiens', $this->paroisse[$this->customFieldName_numParoissiens]);
-      $this->assign('numElecteurs', $this->paroisse[$this->customFieldName_numElecteurs]);
-      if ($numPresbyt > 0) {
-        $this->assign('numPresbyt', $numPresbyt);
-      }
-      else {
-        $this->assign('numPresbyt', '');
-      }
-
-      CRM_Utils_System::setTitle('Paroisse : ' . $this->paroisse['organization_name']);
+      $this->assign('hierarchy', $this->buildHierarchy());
     }
     catch (Exception $e) {
       CRM_Core_Session::setStatus($e->getMessage());
     }
 
-    $this->assign('paroisseId', $this->paroisseId);
     parent::run();
   }
 
-  private function checkPermissionAndRetrieveParoisse() {
+  private function getParoisseDetail($paroisseId) {
+    $paroisseDetail = [];
+
+    $paroisse = civicrm_api3('Contact', 'getsingle', [
+      'id' => $paroisseId,
+      'contact_sub_type' => 'paroisse',
+      'is_deleted' => 0,
+      'return' => "organization_name,{$this->customFieldName_numElecteurs},{$this->customFieldName_numParoissiens}",
+    ]);
+
+    $numPresbyt = $this->getNumPresbyt($paroisse[$this->customFieldName_numParoissiens]);
+    if ($numPresbyt > 0) {
+      $paroisseDetail['numPresbyt'] = $numPresbyt;
+    }
+    else {
+      $paroisseDetail['numPresbyt'] = '';
+    }
+
+    $paroisseDetail['managementArr'] = $this->getParoisseManagement($paroisseId);
+
+    $relType = $this->config->getRelationshipType_estMembreDeDroitDe();
+    $paroisseDetail['rightMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+
+    $relType = $this->config->getRelationshipType_estMembreEluDe();
+    $paroisseDetail['electedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), $numPresbyt);
+
+    $relType = $this->config->getRelationshipType_estMembreInviteDe();
+    $paroisseDetail['invitedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+
+    $relType = $this->config->getRelationshipType_estMembreCoopteDe();
+    $paroisseDetail['cooptedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+
+    $paroisseDetail['numParoissiens'] = $paroisse[$this->customFieldName_numParoissiens];
+    $paroisseDetail['numElecteurs'] = $paroisse[$this->customFieldName_numElecteurs];
+
+
+    return $paroisseDetail;
+  }
+
+  private function buildHierarchy() {
+    // we build an array of 3 nested levels:
+    // level 1: one or more Inspection / Consistoire réformé [for now, will only be 1 because eglise level is not implemented yet]
+    //   level 2: one or more consistoire_lutherien OR one dummy in case of réformé
+    //     level 3: one or more paroisse
+
+    $level1 = [];
+    $inspectionName = $this->getInspectionConsistoireReformeName($this->inspectionConsistoireReformeId);
+    $level1[$inspectionName] = $this->getConsistoiresOrDummy($this->inspectionConsistoireReformeId);
+
+    return $level1;
+  }
+
+  private function getInspectionConsistoireReformeName($inspectionConsistoireReformeId) {
+    if ($inspectionConsistoireReformeId == 0) {
+      $inspectionConsistoireReformeId = $this->getInspectionIdFromLowerLevel();
+      $this->inspectionConsistoireReformeId = $inspectionConsistoireReformeId;
+    }
+
+    return $this->getOrganizationName($inspectionConsistoireReformeId);
+  }
+
+  private function getConsistoiresOrDummy($inspectionConsistoireReformeId) {
+    $level2 = [];
+
+    if ($this->consistoireLutherienId) {
+      $consistoireLutherienName = $this->getOrganizationName($this->consistoireLutherienId);
+      $level2[$consistoireLutherienName] = $this->getParoisesFromConsistoireLutherien($this->consistoireLutherienId);
+    }
+    else {
+      $consistoireIds = $this->getConsistoireIdsFromInspection($inspectionConsistoireReformeId);
+      if (count($consistoireIds) > 0) {
+        foreach ($consistoireIds as $consistoireId) {
+          $consistoireLutherienName = $this->getOrganizationName($consistoireId);
+          $level2[$consistoireLutherienName] = $this->getParoisesFromConsistoireLutherien($consistoireId);
+        }
+      }
+      else {
+        $level2[''] = $this->getParoisesFromInspection($inspectionConsistoireReformeId);
+      }
+    }
+
+    return $level2;
+  }
+
+  private function getConsistoireIdsFromInspection($inspectionConsistoireReformeId) {
+    $ids = [];
+
+    if ($this->paroisseId) {
+      $whereParoisse = " and pd.entity_id = " . $this->paroisseId;
+    }
+    else {
+      $whereParoisse = '';
+    }
+
+    $sql = "
+      select
+        pd.consistoire_lutherien
+      from
+        civicrm_value_paroisse_detail pd
+      inner join
+        civicrm_contact c on c.id = pd.consistoire_lutherien
+      where
+        pd.inspection_consistoire_reforme = $inspectionConsistoireReformeId
+      and
+        c.is_deleted = 0
+      $whereParoisse
+      order by
+        c.sort_name
+    ";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+    while ($dao->fetch()) {
+      $ids[] = $dao->consistoire_lutherien;
+    }
+
+    return $ids;
+  }
+
+  private function getParoisesFromConsistoireLutherien($consistoireLutherienId) {
+    $level3 = [];
+
+    $sql = "
+      select
+        pd.entity_id
+      from
+        civicrm_value_paroisse_detail pd
+      inner join
+        civicrm_contact c on c.id = pd.entity_id
+      where
+        consistoire_lutherien = $consistoireLutherienId
+      and
+        c.is_deleted = 0
+      order by
+        c.sort_name
+    ";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+
+    while ($dao->fetch()) {
+      $paroisseName = $this->getOrganizationName($dao->entity_id);
+      $level3[$paroisseName] = $this->getParoisseDetail($dao->entity_id);
+    }
+
+    return $level3;
+  }
+
+  private function getParoisesFromInspection($inspectionConsistoireReformeId) {
+    $level3 = [];
+
+    if ($this->paroisseId) {
+      $whereParoisse = " and pd.entity_id = " . $this->paroisseId;
+    }
+    else {
+      $whereParoisse = '';
+    }
+
+    $sql = "
+      select
+        pd.entity_id
+      from
+        civicrm_value_paroisse_detail pd
+      inner join
+        civicrm_contact c on c.id = pd.entity_id
+      where
+        inspection_consistoire_reforme = $inspectionConsistoireReformeId
+      and
+        c.is_deleted = 0
+      $whereParoisse
+      order by
+        c.sort_name
+    ";
+    $dao = CRM_Core_DAO::executeQuery($sql);
+
+    while ($dao->fetch()) {
+      $paroisseName = $this->getOrganizationName($dao->entity_id);
+      $level3[$paroisseName] = $this->getParoisseDetail($dao->entity_id);
+    }
+
+    return $level3;
+  }
+
+  private function getOrganizationName($contactId) {
+    return CRM_Core_DAO::singleValueQuery("select organization_name from civicrm_contact where id = $contactId");
+  }
+
+  private function getInspectionIdFromLowerLevel() {
+    if ($this->consistoireLutherienId) {
+      $sql = "select inspection_consistoire_reforme from civicrm_value_paroisse_detail where consistoire_lutherien = " . $this->consistoireLutherienId;
+    }
+    else {
+      $sql = "select inspection_consistoire_reforme from civicrm_value_paroisse_detail where entity_id = " . $this->paroisseId;
+    }
+
+    $dao = CRM_Core_DAO::executeQuery($sql);
+    if ($dao->fetch()) {
+      return $dao->inspection_consistoire_reforme;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  private function checkPermissionAndRetrieveIds() {
     // this page is public but we only show content if:
     // - the current user is logged in and has access to civicrm, and a paroisse ID was given
     // or
@@ -71,8 +243,10 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     //     - secretary
     //     - treasurer
     if (CRM_Core_Permission::check('access CiviCRM')) {
-      // the user is logged in, get the paroisse id
+      // the user is logged in, get the id of the provided paroisse or consistoire or inspection
       $this->paroisseId = CRM_Utils_Request::retrieve('paroisse', 'Integer', $this, FALSE, 0);
+      $this->consistoireLutherienId = CRM_Utils_Request::retrieve('consistoire_lutherien', 'Integer', $this, FALSE, 0);
+      $this->inspectionConsistoireReformeId = CRM_Utils_Request::retrieve('inspection_consistoire_reforme', 'Integer', $this, FALSE, 0);
     }
     else {
       // the user is not logged in, check cid and cs
@@ -87,26 +261,14 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
 
       // get the paroisse of this user
       $this->paroisseId = $this->getParoisseIdOfContact($cid);
-    }
-
-    // make sure we have a paroisse id
-    if ($this->paroisseId > 0) {
-      // get the paroisse
-      $this->paroisse = civicrm_api3('Contact', 'getsingle', [
-        'id' => $this->paroisseId,
-        'contact_sub_type' => 'paroisse',
-        'is_deleted' => 0,
-        'return' => "organization_name,{$this->customFieldName_numElecteurs},{$this->customFieldName_numParoissiens}",
-      ]);
-    }
-    else {
-      throw new Exception("L'information n'est pas disponible.");
+      $this->consistoireLutherienId = 0;
+      $this->inspectionConsistoireReformeId = 0;
     }
   }
 
-  private function getNumPresbyt() {
+  private function getNumPresbyt($numParoissiens) {
     $numPresbyt = 0;
-    $n = (int)$this->paroisse[$this->customFieldName_numParoissiens];
+    $n = (int)$numParoissiens;
     if ($n < 500) {
       $numPresbyt = 6;
     }
@@ -129,23 +291,23 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     return $numPresbyt;
   }
 
-  private function getParoisseManagement() {
+  private function getParoisseManagement($paroisseId) {
     $relType = $this->config->getRelationshipType_estPresidentDe();
-    $a = $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $a = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
 
     $relType = $this->config->getRelationshipType_estVicePresidentDe();
-    $b = $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $b = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
 
     $relType = $this->config->getRelationshipType_estTresorierDe();
-    $c = $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $c = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
 
     $relType = $this->config->getRelationshipType_estSecretaireDe();
-    $d = $this->getContacts($relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $d = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
 
     return array_merge($a, $b, $c, $d);
   }
 
-  private function getContacts($relTypeId, $relTypeName, $minRecords = 1) {
+  private function getContacts($paroisseId, $relTypeId, $relTypeName, $minRecords = 1) {
     $sql = "
       select
       '$relTypeName' role
@@ -185,7 +347,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       where
         r.relationship_type_id = $relTypeId
         and r.is_active = 1
-        and r.contact_id_b = {$this->paroisseId}
+        and r.contact_id_b = $paroisseId
       order by
         c.sort_name
     ";
@@ -226,7 +388,14 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       and
         r.is_active = 1
     ";
-    return CRM_Core_DAO::singleValueQuery($sql, [1 => [$contactId, 'Integer']]);
+    $paroisseId = CRM_Core_DAO::singleValueQuery($sql, [1 => [$contactId, 'Integer']]);
+
+    if ($paroisseId > 0) {
+      return $paroisseId;
+    }
+    else {
+      throw new Exception("L'information n'est pas disponible.");
+    }
   }
 
 }
