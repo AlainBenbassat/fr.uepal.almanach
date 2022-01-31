@@ -65,6 +65,9 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     $relType = $this->config->getRelationshipType_estMembreCoopteDe();
     $paroisseDetail['cooptedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
 
+    $relType = $this->config->getRelationshipType_estReceveurDe();
+    $paroisseDetail['receveursArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+
     $paroisseDetail['numParoissiens'] = $paroisse[$this->customFieldName_numParoissiens];
     $paroisseDetail['numElecteurs'] = $paroisse[$this->customFieldName_numElecteurs];
 
