@@ -153,6 +153,13 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   private function getParoisesFromConsistoireLutherien($consistoireLutherienId) {
     $level3 = [];
 
+    if ($this->paroisseId) {
+      $whereParoisse = " and pd.entity_id = " . $this->paroisseId;
+    }
+    else {
+      $whereParoisse = '';
+    }
+
     $sql = "
       select
         pd.entity_id
@@ -164,6 +171,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
         consistoire_lutherien = $consistoireLutherienId
       and
         c.is_deleted = 0
+      $whereParoisse
       order by
         c.sort_name
     ";
