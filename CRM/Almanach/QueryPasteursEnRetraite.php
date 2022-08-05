@@ -48,7 +48,7 @@ class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
 
   private function getQuery() {
     $fields = $this->getFieldListAsString();
-    $groupByFields = $this->getGroupByFieldsAsString('phone');
+    $groupByFields = $this->getGroupByFieldsAsString(['phone']);
 
     $sql = "
       select

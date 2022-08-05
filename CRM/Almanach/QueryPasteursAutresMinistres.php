@@ -39,11 +39,12 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       [
         'label' => 'Tél',
         'name' => 'phone',
-        'dbAlias' => "group_concat(phone ORDER BY phone SEPARATOR ' - ')",
+        'dbAlias' => "group_concat(DISTINCT phone ORDER BY phone SEPARATOR ' - ')",
       ],
       [
         'label' => 'E-mail',
         'name' => 'email',
+        'dbAlias' => "group_concat(DISTINCT email ORDER BY email SEPARATOR ' - ')",
       ],
     ];
     $this->query = $this->getQuery();
@@ -52,7 +53,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
 
   private function getQuery() {
     $fields = $this->getFieldListAsString();
-    $groupByFields = $this->getGroupByFieldsAsString('phone');
+    $groupByFields = $this->getGroupByFieldsAsString(['phone', 'email']);
 
     $sql = "
       select
@@ -66,7 +67,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       left outer join
         civicrm_phone p on p.contact_id = c.id and p.location_type_id = 2
       left outer join
-        civicrm_email e on e.contact_id = c.id and e.is_primary = 1
+        civicrm_email e on e.contact_id = c.id and e.location_type_id = 2
       where
         contact_sub_type like '%Ministre%'
       and

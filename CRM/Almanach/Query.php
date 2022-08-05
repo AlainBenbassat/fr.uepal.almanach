@@ -33,11 +33,11 @@ class CRM_Almanach_Query {
     return $fieldList;
   }
 
-  public function getGroupByFieldsAsString($excludeCol) {
+  public function getGroupByFieldsAsString($excludeCols) {
     $fieldList = '';
 
     foreach ($this->fields as $field) {
-      if ($field['name'] != $excludeCol) {
+      if (!in_array($field['name'], $excludeCols)) {
         if ($fieldList) {
           $fieldList .= ',';
         }

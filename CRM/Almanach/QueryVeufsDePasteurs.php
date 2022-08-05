@@ -45,7 +45,7 @@ class CRM_Almanach_QueryVeufsDePasteurs extends CRM_Almanach_Query {
     $VEUF_DE_PASTEUR_TAG_ID = 35;
 
     $fields = $this->getFieldListAsString();
-    $groupByFields = $this->getGroupByFieldsAsString('phone');
+    $groupByFields = $this->getGroupByFieldsAsString(['phone']);
 
     $sql = "
       select
