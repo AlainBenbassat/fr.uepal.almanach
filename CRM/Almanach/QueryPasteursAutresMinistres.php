@@ -64,7 +64,7 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       left outer join
         civicrm_address a on a.contact_id = c.id and a.is_primary = 1
       left outer join
-        civicrm_phone p on p.contact_id = c.id
+        civicrm_phone p on p.contact_id = c.id and p.location_type_id = 2
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       where
@@ -75,8 +75,6 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
         is_deceased = 0
       and
         statut = 1
-      and
-        p.location_type_id = 2
       group by
         $groupByFields
       order by
