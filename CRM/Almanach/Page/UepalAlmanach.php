@@ -16,6 +16,9 @@ class CRM_Almanach_Page_UepalAlmanach extends CRM_Core_Page {
     $q = new CRM_Almanach_QueryPasteursEnRetraite();
     $queries[] = $this->toArrayForTemplate($q);
 
+    $q = new CRM_Almanach_QueryVeufsDePasteurs();
+    $queries[] = $this->toArrayForTemplate($q);
+
     $this->assign('queries', $queries);
     parent::run();
   }

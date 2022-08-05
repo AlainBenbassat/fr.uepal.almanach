@@ -1,23 +1,14 @@
 <?php
 
-class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
+class CRM_Almanach_QueryVeufsDePasteurs extends CRM_Almanach_Query {
   public function __construct() {
-    $this->title = 'Pasteur•es et autres ministres de l’UEPAL';
+    $this->title = 'Veuve / veuf de pasteur·e';
 
     $this->fields = [
       [
         'label' => 'Nom',
         'name' => 'name',
         'dbAlias' => "concat(last_name, ' ', first_name)",
-      ],
-      [
-        'label' => 'Années',
-        'name' => "annee",
-        'dbAlias' => "concat('(',ifnull(year(birth_date),'-'),'/',ifnull(annee_entree_ministere,'-'),'/',ifnull(annee_consecration,'-'),'/',ifnull(annee_poste_actuel,'-'),')')",
-      ],
-      [
-        'label' => 'Poste actuel',
-        'name' => 'job_title',
       ],
       [
         'label' => 'Rue',
@@ -51,6 +42,8 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
   }
 
   private function getQuery() {
+    $VEUF_DE_PASTEUR_TAG_ID = 35;
+    
     $fields = $this->getFieldListAsString();
     $groupByFields = $this->getGroupByFieldsAsString('phone');
 
@@ -60,23 +53,21 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       from
         civicrm_contact c
       left outer join
-        civicrm_value_ministre_detail md on md.entity_id = c.id
-      left outer join
         civicrm_address a on a.contact_id = c.id and a.is_primary = 1
       left outer join
         civicrm_phone p on p.contact_id = c.id
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       where
-        contact_sub_type like '%Ministre%'
-      and
         is_deleted = 0
       and
         is_deceased = 0
       and
-        statut = 1
+        p.location_type_id = 1
       and
-        p.location_type_id = 2
+        exists (
+          select * from civicrm_entity_tag et where et.entity_id = c.id and et.entity_table = 'civicrm_contact' and et.tag_id = $VEUF_DE_PASTEUR_TAG_ID
+        )
       group by
         $groupByFields
       order by

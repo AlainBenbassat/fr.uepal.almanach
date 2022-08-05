@@ -2,7 +2,7 @@
 
 class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
   public function __construct() {
-    $this->title = "Pasteurs en retraite de l’Union des Églises protestantes d’Alsace et de Lorraine";
+    $this->title = "Pasteur·es en retraite de l’Union des Églises protestantes d’Alsace et de Lorraine";
 
     $this->fields = [
       [
@@ -16,16 +16,16 @@ class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
         'dbAlias' => "concat('(',ifnull(year(birth_date),'-'),'/',ifnull(annee_entree_ministere,'-'),'/',ifnull(annee_consecration,'-'),'/',ifnull(annee_poste_actuel,'-'),')')",
       ],
       [
+        'label' => 'Rue',
+        'name' => 'street_address',
+      ],
+      [
         'label' => "Complément d'adresse",
         'name' => 'supplemental_address_1',
       ],
       [
         'label' => "Complément d'adresse 2",
         'name' => 'supplemental_address_2',
-      ],
-      [
-        'label' => 'Rue',
-        'name' => 'street_address',
       ],
       [
         'label' => 'CP et Ville',
@@ -71,6 +71,8 @@ class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
         is_deceased = 0
       and
         statut = 3
+      and
+        p.location_type_id = 1
       group by
         $groupByFields
       order by

@@ -13,16 +13,21 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
         'dbAlias' => "concat(last_name, ' ', first_name)",
       ],
       [
+        'label' => 'Années',
+        'name' => "annee",
+        'dbAlias' => "concat('(',ifnull(year(birth_date),'-'),'/',ifnull(year(r.start_date),'-'),')')",
+      ],
+      [
+        'label' => 'Rue',
+        'name' => 'street_address',
+      ],
+      [
         'label' => "Complément d'adresse",
         'name' => 'supplemental_address_1',
       ],
       [
         'label' => "Complément d'adresse 2",
         'name' => 'supplemental_address_2',
-      ],
-      [
-        'label' => 'Rue',
-        'name' => 'street_address',
       ],
       [
         'label' => 'CP et Ville',
@@ -66,6 +71,12 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
         is_deleted = 0
       and
         is_deceased = 0
+      and
+        p.location_type_id = 2
+      and
+        not exists (
+          select * from civicrm_entity_tag et where et.entity_id = c.id and et.entity_table = 'civicrm_contact'
+        )
       group by
         $groupByFields
       order by
