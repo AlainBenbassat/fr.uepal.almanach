@@ -75,7 +75,18 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
         p.location_type_id = 2
       and
         not exists (
-          select * from civicrm_entity_tag et where et.entity_id = c.id and et.entity_table = 'civicrm_contact'
+          select
+            *
+          from
+            civicrm_entity_tag et
+          inner join
+            civicrm_entity ent on et.tag_id = ent.id
+          where
+            et.entity_id = c.id
+          and
+            et.entity_table = 'civicrm_contact'
+          and
+            ent.name like 'Ministère%'
         )
       group by
         $groupByFields
