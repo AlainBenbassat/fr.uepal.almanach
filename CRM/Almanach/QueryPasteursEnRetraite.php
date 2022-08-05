@@ -47,6 +47,8 @@ class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
   }
 
   private function getQuery() {
+    $HOME_LOCATION_TYPE_ID = 1;
+
     $fields = $this->getFieldListAsString();
     $groupByFields = $this->getGroupByFieldsAsString(['phone']);
 
@@ -60,7 +62,7 @@ class CRM_Almanach_QueryPasteursEnRetraite extends CRM_Almanach_Query {
       left outer join
         civicrm_address a on a.contact_id = c.id and a.is_primary = 1
       left outer join
-        civicrm_phone p on p.contact_id = c.id and p.location_type_id = 1
+        civicrm_phone p on p.contact_id = c.id and p.location_type_id = $HOME_LOCATION_TYPE_ID
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       where

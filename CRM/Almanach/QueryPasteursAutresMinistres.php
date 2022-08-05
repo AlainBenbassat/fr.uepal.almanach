@@ -52,6 +52,8 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
   }
 
   private function getQuery() {
+    $WORK_LOCATION_TYPE_ID = 2;
+
     $fields = $this->getFieldListAsString();
     $groupByFields = $this->getGroupByFieldsAsString(['phone', 'email']);
 
@@ -63,11 +65,11 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       left outer join
         civicrm_value_ministre_detail md on md.entity_id = c.id
       left outer join
-        civicrm_address a on a.contact_id = c.id and a.is_primary = 1
+        civicrm_address a on a.contact_id = c.id and a.is_primary = 1 and a.location_type_id = $WORK_LOCATION_TYPE_ID
       left outer join
-        civicrm_phone p on p.contact_id = c.id and p.location_type_id = 2
+        civicrm_phone p on p.contact_id = c.id and p.location_type_id = $WORK_LOCATION_TYPE_ID
       left outer join
-        civicrm_email e on e.contact_id = c.id and e.location_type_id = 2
+        civicrm_email e on e.contact_id = c.id and e.location_type_id = $WORK_LOCATION_TYPE_ID
       where
         contact_sub_type like '%Ministre%'
       and
