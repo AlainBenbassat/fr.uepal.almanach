@@ -66,7 +66,7 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       where
-        contact_sub_type IS NULL
+        ifnull(contact_sub_type, '') = ''
       and
         r.is_active = 1
       and
