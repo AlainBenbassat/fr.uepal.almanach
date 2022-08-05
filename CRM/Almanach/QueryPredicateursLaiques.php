@@ -80,7 +80,7 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
           from
             civicrm_entity_tag et
           inner join
-            civicrm_entity ent on et.tag_id = ent.id
+            civicrm_tag ent on et.tag_id = ent.id
           where
             et.entity_id = c.id
           and
