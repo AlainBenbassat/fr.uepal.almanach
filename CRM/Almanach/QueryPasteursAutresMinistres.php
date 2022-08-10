@@ -39,12 +39,12 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
       [
         'label' => 'Tél',
         'name' => 'phone',
-        'dbAlias' => "group_concat(DISTINCT phone ORDER BY phone SEPARATOR ' - ')",
+        'dbAlias' => "group_concat(DISTINCT phone ORDER BY p.is_primary DESC SEPARATOR ' - ')",
       ],
       [
         'label' => 'E-mail',
         'name' => 'email',
-        'dbAlias' => "group_concat(DISTINCT email ORDER BY email SEPARATOR ' - ')",
+        'dbAlias' => "group_concat(DISTINCT email ORDER BY e.is_primary DESC SEPARATOR ' - ')",
       ],
     ];
     $this->query = $this->getQuery();
