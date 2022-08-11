@@ -41,7 +41,7 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
       ],
       [
         'label' => 'E-mail',
-        'name' => 'email',
+        'name' => 'if(do_not_trade = 1, NULL, email)',
       ],
     ];
     $this->query = $this->getQuery();
