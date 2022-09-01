@@ -8,7 +8,12 @@ class CRM_Almanach_QueryVeufsDePasteurs extends CRM_Almanach_Query {
       [
         'label' => 'Nom',
         'name' => 'name',
-        'dbAlias' => "concat(last_name, ' ', first_name)",
+        'dbAlias' => "concat(fist_name, ' ', last_name)",
+      ],
+      [
+        'label' => 'Nom de jeune fille',
+        'name' => 'nick_name',
+        'dbAlias' => "if(length(trim(nick_name)) > 0, concat('née ', trim(nick_name), ' (*', year(birth_date), ')'), NULL)",
       ],
       [
         'label' => 'Rue',
