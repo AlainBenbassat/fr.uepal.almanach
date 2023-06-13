@@ -245,36 +245,47 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   }
 
   private function checkPermissionAndRetrieveIds() {
-    // this page is public but we only show content if:
-    // - the current user is logged in and has access to civicrm, and a paroisse ID was given
+    // this page is public but we give access if:
+    // - the user is logged in, has access to civicrm and a paroisse ID, consistoire ID or inspection ID was given
     // or
-    // - we have a valid cid and checksum in the url, and the contact has one these roles
-    //     - president
-    //     - vice president
-    //     - secretary
-    //     - treasurer
-    if (CRM_Core_Permission::check('access CiviCRM')) {
+    // - we have a valid cid and checksum in the url, and the contact has a appropriate role
+    if ($this->isLoggedInCiviCrmUser()) {
       // the user is logged in, get the id of the provided paroisse or consistoire or inspection
       $this->paroisseId = CRM_Utils_Request::retrieve('paroisse', 'Integer', $this, FALSE, 0);
       $this->consistoireLutherienId = CRM_Utils_Request::retrieve('consistoire_lutherien', 'Integer', $this, FALSE, 0);
       $this->inspectionConsistoireReformeId = CRM_Utils_Request::retrieve('inspection_consistoire_reforme', 'Integer', $this, FALSE, 0);
     }
-    else {
-      // the user is not logged in, check cid and cs
-      $cs = CRM_Utils_Request::retrieve('cs', 'String');
+    elseif ($this->hasValidChecksum()) {
       $cid = CRM_Utils_Request::retrieve('cid', 'Int');
-      if (empty($cs) || empty($cid)) {
-        throw new Exception("L'information n'est pas disponible.");
-      }
-      elseif (CRM_Contact_BAO_Contact_Utils::validChecksum($cid, $cs) !== TRUE) {
-        throw new Exception("Le lien que vous avez utilisé n'est plus actif.");
-      }
 
-      // get the paroisse of this user
+      // get the paroisse or consistoire or inspection of this user
       $this->paroisseId = $this->getParoisseIdOfContact($cid);
-      $this->consistoireLutherienId = 0;
-      $this->inspectionConsistoireReformeId = 0;
+      $this->consistoireLutherienId = $this->getConsistoireLutherienIdOfContact($cid);
+      $this->inspectionConsistoireReformeId = $this->getInspectionConsistoireReformeIdOfContact($cid);
     }
+  }
+
+  private function isLoggedInCiviCrmUser() {
+    if (CRM_Core_Permission::check('access CiviCRM')) {
+      return TRUE;
+    }
+    else {
+      return FALSE;
+    }
+  }
+
+  private function hasValidChecksum() {
+    $cs = CRM_Utils_Request::retrieve('cs', 'String');
+    $cid = CRM_Utils_Request::retrieve('cid', 'Int');
+
+    if (empty($cs) || empty($cid)) {
+      throw new Exception("L'information n'est pas disponible.");
+    }
+    elseif (CRM_Contact_BAO_Contact_Utils::validChecksum($cid, $cs) !== TRUE) {
+      throw new Exception("Le lien que vous avez utilisé n'est plus actif.");
+    }
+
+    return TRUE;
   }
 
   private function getNumPresbyt($numParoissiens) {
@@ -379,25 +390,35 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   }
 
   private function getParoisseIdOfContact($contactId) {
-    // get relationship type id's of (vice)president, secretary, treasurer
+    // allowed relationship types:
     $relTypeIds = '(' .
+      $this->config->getRelationshipType_estPasteurDesservantDe()['id'] . ',' .
+      $this->config->getRelationshipType_estPasteurNommeDe()['id'] . ',' .
       $this->config->getRelationshipType_estPresidentDe()['id'] . ',' .
-      $this->config->getRelationshipType_estVicePresidentDe()['id'] . ',' .
       $this->config->getRelationshipType_estSecretaireDe()['id'] . ',' .
-      $this->config->getRelationshipType_estTresorierDe()['id'] . ')';
+      $this->config->getRelationshipType_estTresorierDe()['id'] . ',' .
+      $this->config->getRelationshipType_estVicePresidentDe()['id'] .
+    ')';
 
-    // get the paroisse
     $sql = "
       select
         ifnull(max(r.contact_id_b), 0)
       from
         civicrm_relationship r
+      inner join
+        civicrm_contact c on c.id = r.contact_id_b
       where
         r.relationship_type_id in $relTypeIds
       and
         r.contact_id_a = %1
       and
         r.is_active = 1
+      and
+        c.is_deleted = 0
+      and
+        c.contact_type = 'Organization'
+      and
+        c.contact_sub_type like '%paroisse%'
     ";
     $paroisseId = CRM_Core_DAO::singleValueQuery($sql, [1 => [$contactId, 'Integer']]);
 
@@ -405,8 +426,73 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       return $paroisseId;
     }
     else {
-      throw new Exception("L'information n'est pas disponible.");
+      return 0; //throw new Exception("L'information n'est pas disponible.");
     }
   }
 
+  private function getConsistoireLutherienIdOfContact($contactId) {
+    $relTypeId = $this->config->getRelationshipType_estPresidentDe()['id'];
+
+    $sql = "
+      select
+        ifnull(max(r.contact_id_b), 0)
+      from
+        civicrm_relationship r
+      inner join
+        civicrm_contact c on c.id = r.contact_id_b
+      where
+        r.relationship_type_id = $relTypeId
+      and
+        r.contact_id_a = %1
+      and
+        r.is_active = 1
+      and
+        c.is_deleted = 0
+      and
+        c.contact_type = 'Organization'
+      and
+        c.contact_sub_type like '%consistoire_lutherien%'
+    ";
+    $consistoireLutherienId = CRM_Core_DAO::singleValueQuery($sql, [1 => [$contactId, 'Integer']]);
+
+    if ($consistoireLutherienId > 0) {
+      return $consistoireLutherienId;
+    }
+    else {
+      return 0;
+    }
+  }
+
+  private function getInspectionConsistoireReformeIdOfContact($contactId) {
+    $relTypeId = $this->config->getRelationshipType_estPresidentDe()['id'];
+
+    $sql = "
+      select
+        ifnull(max(r.contact_id_b), 0)
+      from
+        civicrm_relationship r
+      inner join
+        civicrm_contact c on c.id = r.contact_id_b
+      where
+        r.relationship_type_id = $relTypeId
+      and
+        r.contact_id_a = %1
+      and
+        r.is_active = 1
+      and
+        c.is_deleted = 0
+      and
+        c.contact_type = 'Organization'
+      and
+        c.contact_sub_type like '%inspection_consistoire_reforme%'
+    ";
+    $consistoireLutherienId = CRM_Core_DAO::singleValueQuery($sql, [1 => [$contactId, 'Integer']]);
+
+    if ($consistoireLutherienId > 0) {
+      return $consistoireLutherienId;
+    }
+    else {
+      return 0;
+    }
+  }
 }
