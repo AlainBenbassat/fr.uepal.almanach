@@ -258,10 +258,18 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     elseif ($this->hasValidChecksum()) {
       $cid = CRM_Utils_Request::retrieve('cid', 'Int');
 
-      // get the paroisse or consistoire or inspection of this user
-      $this->paroisseId = $this->getParoisseIdOfContact($cid);
-      $this->consistoireLutherienId = $this->getConsistoireLutherienIdOfContact($cid);
+      // get the inspection, consistoire, or paroisse
+      $this->paroisseId = 0;
+      $this->consistoireLutherienId = 0;
+
       $this->inspectionConsistoireReformeId = $this->getInspectionConsistoireReformeIdOfContact($cid);
+      if (empty($this->inspectionConsistoireReformeId)) {
+        $this->consistoireLutherienId = $this->getConsistoireLutherienIdOfContact($cid);
+
+        if (empty($this->consistoireLutherienId)) {
+          $this->paroisseId = $this->getParoisseIdOfContact($cid);
+        }
+      }
     }
   }
 
