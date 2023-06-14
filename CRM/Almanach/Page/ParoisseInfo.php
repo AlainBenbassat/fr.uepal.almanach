@@ -400,7 +400,6 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   private function getParoisseIdOfContact($contactId) {
     // allowed relationship types:
     $relTypeIds = '(' .
-      $this->config->getRelationshipType_estPasteurDesservantDe()['id'] . ',' .
       $this->config->getRelationshipType_estPasteurNommeDe()['id'] . ',' .
       $this->config->getRelationshipType_estPresidentDe()['id'] . ',' .
       $this->config->getRelationshipType_estSecretaireDe()['id'] . ',' .
