@@ -431,7 +431,10 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   }
 
   private function getConsistoireLutherienIdOfContact($contactId) {
-    $relTypeId = $this->config->getRelationshipType_estPresidentDe()['id'];
+    $relTypeIds = '(' .
+      $this->config->getRelationshipType_estPresidentDe()['id'] . ',' .
+      $this->config->getRelationshipType_estVicePresidentDe()['id'] .
+    ')';
 
     $sql = "
       select
@@ -441,7 +444,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       inner join
         civicrm_contact c on c.id = r.contact_id_b
       where
-        r.relationship_type_id = $relTypeId
+        r.relationship_type_id in $relTypeIds
       and
         r.contact_id_a = %1
       and
@@ -464,7 +467,12 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   }
 
   private function getInspectionConsistoireReformeIdOfContact($contactId) {
-    $relTypeId = $this->config->getRelationshipType_estPresidentDe()['id'];
+    $relTypeIds = '(' .
+      $this->config->getRelationshipType_estPresidentDe()['id'] . ',' .
+      $this->config->getRelationshipType_estVicePresidentDe()['id'] . ',' .
+      $this->config->getRelationshipType_estInspecteurDe()['id'] . ',' .
+      $this->config->getRelationshipType_estInspecteurEcclesiastiqueDe()['id'] .
+    ')';
 
     $sql = "
       select
@@ -474,7 +482,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       inner join
         civicrm_contact c on c.id = r.contact_id_b
       where
-        r.relationship_type_id = $relTypeId
+        r.relationship_type_id in $relTypeIds
       and
         r.contact_id_a = %1
       and
