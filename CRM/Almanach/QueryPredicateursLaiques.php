@@ -4,7 +4,7 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
   const REL_TYPE_ID_est_predicateur_laique_pour = 27;
 
   public function __construct() {
-    $this->title = 'Prédicateurs laïques';
+    $this->title = 'Prédicateurs / prédicatrices';
 
     $this->fields = [
       [
