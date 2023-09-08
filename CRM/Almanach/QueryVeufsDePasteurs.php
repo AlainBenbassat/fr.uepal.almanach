@@ -8,7 +8,7 @@ class CRM_Almanach_QueryVeufsDePasteurs extends CRM_Almanach_Query {
       [
         'label' => 'Nom',
         'name' => 'name',
-        'dbAlias' => "concat(first_name, ' ', last_name)",
+        'dbAlias' => "concat(last_name, ' ', first_name)",
       ],
       [
         'label' => 'Nom de jeune fille',
