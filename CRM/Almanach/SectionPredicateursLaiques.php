@@ -1,12 +1,20 @@
 <?php
 
-class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
+class CRM_Almanach_SectionPredicateursLaiques {
   const REL_TYPE_ID_est_predicateur_laique_pour = 27;
 
   public function __construct() {
-    $this->title = 'Prédicateurs / prédicatrices';
+    $this->data['title'] = 'Prédicateurs / prédicatrices';
+    $this->data['subsections'] = [];
+    $this->data['subsections'][] = [
+      'title' => '',
+      'fields' => $this->getFields(),
+      'records' => CRM_Almanach_SectionHelper::executeQuery($this->getQuery()),
+    ];
+  }
 
-    $this->fields = [
+  private function getFields() {
+    return [
       [
         'label' => 'Nom',
         'name' => 'name',
@@ -45,15 +53,13 @@ class CRM_Almanach_QueryPredicateursLaiques extends CRM_Almanach_Query {
         'dbAlias' => 'if(do_not_trade = 1, NULL, email)',
       ],
     ];
-    $this->query = $this->getQuery();
-    $this->execute();
   }
 
   private function getQuery() {
     $HOME_LOCATION_TYPE_ID = 1;
 
-    $fields = $this->getFieldListAsString();
-    $groupByFields = $this->getGroupByFieldsAsString(['phone']);
+    $fields = CRM_Almanach_SectionHelper::getFieldListAsString($this->getFields());
+    $groupByFields = CRM_Almanach_SectionHelper::getGroupByFieldsAsString($this->getFields(), ['phone']);
 
     $sql = "
       select

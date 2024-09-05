@@ -1,10 +1,19 @@
 <?php
 
-class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
+class CRM_Almanach_SectionPasteursAutresMinistres {
   public function __construct() {
-    $this->title = 'Pasteur•es et autres ministres de l’UEPAL';
+    $this->data['title'] = 'Pasteur•es et autres ministres de l’UEPAL';
+    $this->data['subsections'] = [];
+    $this->data['subsections'][] = [
+      'title' => '',
+      'fields' => $this->getFields(),
+      'records' => CRM_Almanach_SectionHelper::executeQuery($this->getQuery()),
+    ];
 
-    $this->fields = [
+  }
+
+  private function getFields() {
+    return [
       [
         'label' => 'Nom',
         'name' => 'name',
@@ -47,15 +56,13 @@ class CRM_Almanach_QueryPasteursAutresMinistres extends CRM_Almanach_Query {
         'dbAlias' => "group_concat(DISTINCT email ORDER BY e.is_primary DESC SEPARATOR ' - ')",
       ],
     ];
-    $this->query = $this->getQuery();
-    $this->execute();
   }
 
   private function getQuery() {
     $WORK_LOCATION_TYPE_ID = 2;
 
-    $fields = $this->getFieldListAsString();
-    $groupByFields = $this->getGroupByFieldsAsString(['phone', 'email']);
+    $fields = CRM_Almanach_SectionHelper::getFieldListAsString($this->getFields());
+    $groupByFields = CRM_Almanach_SectionHelper::getGroupByFieldsAsString($this->getFields(), ['phone', 'email']);
 
     $sql = "
       select

@@ -3,23 +3,26 @@ use CRM_Almanach_ExtensionUtil as E;
 
 class CRM_Almanach_Page_UepalAlmanach extends CRM_Core_Page {
   public function run() {
-    $queries = [];
+    $sections = [];
 
     CRM_Utils_System::setTitle("Union des Églises protestantes d'Alsace et de Lorraine");
 
-    $q = new CRM_Almanach_QueryPasteursAutresMinistres();
-    $queries[] = $this->toArrayForTemplate($q);
+    $s = new CRM_Almanach_SectionPasteursAutresMinistres();
+    $sections[] = $s->data;
 
-    $q = new CRM_Almanach_QueryPredicateursLaiques();
-    $queries[] = $this->toArrayForTemplate($q);
+    $s = new CRM_Almanach_SectionPredicateursLaiques();
+    $sections[] = $s->data;
 
-    $q = new CRM_Almanach_QueryPasteursEnRetraite();
-    $queries[] = $this->toArrayForTemplate($q);
+    $s = new CRM_Almanach_SectionPasteursEnRetraite();
+    $sections[] = $s->data;
 
-    $q = new CRM_Almanach_QueryVeufsDePasteurs();
-    $queries[] = $this->toArrayForTemplate($q);
+    $s = new CRM_Almanach_SectionVeufsDePasteurs();
+    $sections[] = $s->data;
 
-    $this->assign('queries', $queries);
+    $s = new CRM_Almanach_SectionAssociationEtOeuvres();
+    $sections[] = $s->data;
+
+    $this->assign('sections', $sections);
     parent::run();
   }
 
@@ -34,13 +37,4 @@ class CRM_Almanach_Page_UepalAlmanach extends CRM_Core_Page {
     }
   }
 
-  private function toArrayForTemplate($q) {
-    $arr = [
-      'title' => $q->title,
-      'fields' => $q->fields,
-      'records' => $q->records,
-    ];
-
-    return $arr;
-  }
 }

@@ -1,19 +1,28 @@
 <?php
 
-class CRM_Almanach_QueryVeufsDePasteurs extends CRM_Almanach_Query {
-  public function __construct() {
-    $this->title = 'Veuve / veuf de pasteur·e';
+class CRM_Almanach_SectionAssociationEtOeuvres {
+  public $data = [];
 
-    $this->fields = [
+  public function __construct() {
+    $this->data['title'] = 'Association et Œuvres';
+    $this->data['subsections'] = [];
+    
+    $subsectionTitles = $this->getSubsectionTitles();
+    foreach ($subsectionTitles as $subsectionTitle) {
+      $this->data['subsections'][] = [
+        'title' => $subsectionTitle,
+        'fields' => $this->getFields(),
+        'records' => CRM_Almanach_SectionHelper::executeQuery($this->getQuery($subsectionTitle)),
+      ];
+    }
+  }
+
+  private function getFields() {
+    return [
       [
         'label' => 'Nom',
         'name' => 'name',
-        'dbAlias' => "concat(last_name, ' ', first_name)",
-      ],
-      [
-        'label' => 'Nom de jeune fille',
-        'name' => 'nick_name',
-        'dbAlias' => "if (length(trim(nick_name)) > 0, concat('née ', trim(nick_name), if(birth_date IS NOT NULL,concat(' (*', year(birth_date), ')'), '')), if(birth_date IS NOT NULL, concat(' (*', year(birth_date), ')'), NULL))",
+        'dbAlias' => 'organization_name',
       ],
       [
         'label' => 'Rue',
@@ -41,17 +50,19 @@ class CRM_Almanach_QueryVeufsDePasteurs extends CRM_Almanach_Query {
         'label' => 'E-mail',
         'name' => 'email',
       ],
+      [
+        'label' => 'Site',
+        'name' => 'url',
+      ],
     ];
-    $this->query = $this->getQuery();
-    $this->execute();
   }
 
   private function getQuery() {
     $VEUF_DE_PASTEUR_TAG_ID = 35;
     $HOME_LOCATION_TYPE_ID = 1;
 
-    $fields = $this->getFieldListAsString();
-    $groupByFields = $this->getGroupByFieldsAsString(['phone']);
+    $fields = CRM_Almanach_SectionHelper::getFieldListAsString($this->getFields());
+    $groupByFields = CRM_Almanach_SectionHelper::getGroupByFieldsAsString($this->getFields(), ['phone']);
 
     $sql = "
       select
@@ -79,5 +90,9 @@ class CRM_Almanach_QueryVeufsDePasteurs extends CRM_Almanach_Query {
     ";
 
     return $sql;
+  }
+
+  private function getSubsectionTitles() {
+    
   }
 }

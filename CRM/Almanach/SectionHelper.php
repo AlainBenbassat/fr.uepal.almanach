@@ -1,22 +1,12 @@
 <?php
 
-class CRM_Almanach_Query {
-  public $title = 'TITRE';
-  public $fields = [];
-  public $records = [];
-  public $query = '';
+class CRM_Almanach_SectionHelper {
 
-  public function execute() {
-    if ($this->query) {
-      $this->executeQuery();
-    }
-  }
-
-  public function getFieldListAsString() {
+  public static function getFieldListAsString($fields) {
     $i = 0;
     $fieldList = '';
 
-    foreach ($this->fields as $field) {
+    foreach ($fields as $field) {
       if ($i > 0) {
         $fieldList .= ',';
       }
@@ -33,10 +23,10 @@ class CRM_Almanach_Query {
     return $fieldList;
   }
 
-  public function getGroupByFieldsAsString($excludeCols) {
+  public static function getGroupByFieldsAsString($fields, $excludeCols) {
     $fieldList = '';
 
-    foreach ($this->fields as $field) {
+    foreach ($fields as $field) {
       if (!in_array($field['name'], $excludeCols)) {
         if ($fieldList) {
           $fieldList .= ',';
@@ -54,8 +44,9 @@ class CRM_Almanach_Query {
     return $fieldList;
   }
 
-  private function executeQuery() {
-    $dao = CRM_Core_DAO::executeQuery($this->query);
-    $this->records = $dao->fetchAll();
+  public static function executeQuery($query) {
+    $dao = CRM_Core_DAO::executeQuery($query);
+    return $dao->fetchAll();
   }
+
 }
