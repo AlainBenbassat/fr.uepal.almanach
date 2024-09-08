@@ -95,7 +95,7 @@ class CRM_Almanach_SectionAssociationEtOeuvres {
   private function getSubsectionTitles() {
     $sectionTitles = [];
 
-    $sql = "select value, label from civicrm_option_value where option_group_id = 122";
+    $sql = "select value, label from civicrm_option_value where option_group_id = 122 order by label";
     $dao = CRM_Core_DAO::executeQuery($sql);
     while ($dao->fetch()) {
       $sectionTitles[$dao->value] = $dao->label;
