@@ -390,7 +390,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     if (count($r) < $minRecords) {
       $numRecordsToAdd = $minRecords - count($r);
       for ($i = 0; $i <  $numRecordsToAdd; $i++) {
-        $r[] = ['role' => $relTypeName, '', '', '', '', '', '', ''];
+        $r[] = ['role' => $relTypeName, 'name' => '', 'start_date' => '', 'end_date' => '', 'ex_relationships' => '', 'email' => '', 'phone' => '', 'address' => '', 'birth_date' => '', '', '', '', '', ''];
       }
     }
 

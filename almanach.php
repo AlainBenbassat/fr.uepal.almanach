@@ -29,7 +29,7 @@ function almanach_getContactSubType($contactID) {
 }
 
 function almanach_getHref($contactSubType, $contactID) {
-  return "../paroisse-info?reset=1&$contactSubType=$contactID";
+  return CRM_Utils_System::url('civicrm/paroisse-info', "reset=1&$contactSubType=$contactID");
 }
 
 function almanach_isParoisseConsistoireInspection($contactSubType) {

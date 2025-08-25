@@ -170,7 +170,7 @@
           </tr>
           </thead>
           <tbody>
-          {foreach from=$paroisseDetails.coopteddMembersArr item=row}
+          {foreach from=$paroisseDetails.cooptedMembersArr item=row}
             <tr class="{cycle values="odd-row,even-row"}">
               <td>{$row.role}</td>
               <td>{$row.name}</td>
