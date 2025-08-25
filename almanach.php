@@ -25,7 +25,7 @@ function almanach_civicrm_summaryActions(&$actions, $contactID) {
 function almanach_getContactSubType($contactID) {
   $sql = "select contact_sub_type from civicrm_contact where id = $contactID";
   $contactSubType = CRM_Core_DAO::singleValueQuery($sql);
-  return str_replace(CRM_Core_DAO::VALUE_SEPARATOR, '', $contactSubType);
+  return empty($contactSubType) ? null : str_replace(CRM_Core_DAO::VALUE_SEPARATOR, '', $contactSubType);
 }
 
 function almanach_getHref($contactSubType, $contactID) {

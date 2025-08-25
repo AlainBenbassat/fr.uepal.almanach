@@ -1,6 +1,7 @@
 <?php
 
 class CRM_Almanach_SectionPredicateursLaiques {
+  public $data = [];
   const REL_TYPE_ID_est_predicateur_laique_pour = 27;
 
   public function __construct() {

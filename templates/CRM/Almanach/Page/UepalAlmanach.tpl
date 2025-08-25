@@ -1,4 +1,4 @@
-<p>Format : liste | <a href="uepalalmanach?layout=block">blocs</a></p>
+<p>Format : liste | <a href="/wp-admin/admin.php?page=CiviCRM&q=civicrm%2Fuepalalmanach&layout=block">blocs</a></p>
 
 {foreach from=$sections item=section}
 

@@ -1,6 +1,8 @@
 <?php
 
 class CRM_Almanach_SectionPasteursAutresMinistres {
+  public $data = [];
+
   public function __construct() {
     $this->data['title'] = 'Pasteur•es et autres ministres de l’UEPAL';
     $this->data['subsections'] = [];

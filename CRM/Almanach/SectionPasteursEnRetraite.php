@@ -1,6 +1,7 @@
 <?php
 
 class CRM_Almanach_SectionPasteursEnRetraite {
+  public $data = [];
   public function __construct() {
     $this->data['title'] = "Pasteur·es en retraite de l’Union des Églises protestantes d’Alsace et de Lorraine";
     $this->data['subsections'] = [];
