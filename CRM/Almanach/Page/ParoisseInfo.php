@@ -5,6 +5,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
   private $config;
   private $customFieldName_numParoissiens = '';
   private $customFieldName_numElecteurs = '';
+  private $vips = [];
 
   private $paroisseId = 0;
   private $consistoireLutherienId = 0;
@@ -25,12 +26,40 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       CRM_Utils_System::setTitle('');
 
       $this->assign('hierarchy', $this->buildHierarchy());
+      $this->assign('vips', $this->getVIPids());
     }
     catch (Exception $e) {
       CRM_Core_Session::setStatus($e->getMessage());
     }
 
     parent::run();
+  }
+
+  private function getVIPids() {
+    $href = CRM_Utils_System::url('civicrm/contact/email', 'reset=1&cid=' . implode(',', $this->vips));
+    $msg = '<a href="' . $href . '">Envoyer un mail aux VIPs</a>';
+    return $msg;
+  }
+
+  private function addVIPs($paroisseId) {
+    $paroisseDetail = \Civi\Api4\Contact::get(FALSE)
+      ->addSelect('paroisse_detail.inspection_consistoire_reforme', 'paroisse_detail.consistoire_lutherien')
+      ->addWhere('id', '=', $paroisseId)
+      ->execute()
+      ->first();
+
+    if ($paroisseDetail) {
+      if ($paroisseDetail['paroisse_detail.inspection_consistoire_reforme']) {
+        // we don't need to get the return value, isVIP = TRUE argument will add the id to the VIP list
+        $relType = $this->config->getRelationshipType_estInspecteurEcclesiastiqueDe();
+        $this->getContacts($paroisseDetail['paroisse_detail.inspection_consistoire_reforme'], $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
+      }
+
+      if ($paroisseDetail['paroisse_detail.consistoire_lutherien']) {
+        $relType = $this->config->getRelationshipType_estPresidentDe();
+        $this->getContacts($paroisseDetail['paroisse_detail.consistoire_lutherien'], $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
+      }
+    }
   }
 
   private function getParoisseDetail($paroisseId) {
@@ -54,19 +83,19 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     $paroisseDetail['managementArr'] = $this->getParoisseManagement($paroisseId);
 
     $relType = $this->config->getRelationshipType_estMembreDeDroitDe();
-    $paroisseDetail['rightMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $paroisseDetail['rightMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE);
 
     $relType = $this->config->getRelationshipType_estMembreEluDe();
-    $paroisseDetail['electedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), $numPresbyt);
+    $paroisseDetail['electedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE, $numPresbyt);
 
     $relType = $this->config->getRelationshipType_estMembreInviteDe();
-    $paroisseDetail['invitedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $paroisseDetail['invitedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE);
 
     $relType = $this->config->getRelationshipType_estMembreCoopteDe();
-    $paroisseDetail['cooptedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $paroisseDetail['cooptedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE);
 
     $relType = $this->config->getRelationshipType_estReceveurDe();
-    $paroisseDetail['receveursArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $paroisseDetail['receveursArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
 
     $paroisseDetail['numParoissiens'] = $paroisse[$this->customFieldName_numParoissiens];
     $paroisseDetail['numElecteurs'] = $paroisse[$this->customFieldName_numElecteurs];
@@ -323,23 +352,26 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
 
   private function getParoisseManagement($paroisseId) {
     $relType = $this->config->getRelationshipType_estPresidentDe();
-    $a = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $a = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
 
     $relType = $this->config->getRelationshipType_estVicePresidentDe();
-    $b = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $b = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
 
     $relType = $this->config->getRelationshipType_estTresorierDe();
-    $c = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $c = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
 
     $relType = $this->config->getRelationshipType_estSecretaireDe();
-    $d = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']));
+    $d = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
+
+    $this->addVIPs($paroisseId);
 
     return array_merge($a, $b, $c, $d);
   }
 
-  private function getContacts($paroisseId, $relTypeId, $relTypeName, $minRecords = 1) {
+  private function getContacts($paroisseId, $relTypeId, $relTypeName, $isVIP = FALSE, $minRecords = 1) {
     $sql = "
       select
+      c.id,
       '$relTypeName' role
       , concat(c.last_name, ' ', c.first_name ) name
       , ifnull(r.start_date, '/') start_date
@@ -391,6 +423,14 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       $numRecordsToAdd = $minRecords - count($r);
       for ($i = 0; $i <  $numRecordsToAdd; $i++) {
         $r[] = ['role' => $relTypeName, 'name' => '', 'start_date' => '', 'end_date' => '', 'ex_relationships' => '', 'email' => '', 'phone' => '', 'address' => '', 'birth_date' => '', '', '', '', '', ''];
+      }
+    }
+
+    if ($isVIP) {
+      foreach ($r as $rr) {
+        if (!empty($rr['id'])) {
+          $this->vips[] = $rr['id'];
+        }
       }
     }
 

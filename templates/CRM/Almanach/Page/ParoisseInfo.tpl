@@ -227,5 +227,5 @@
 
 {/foreach}
 
-
+<p>{$vips}</p>
 
