@@ -1,3 +1,5 @@
+<p style="text-align: right; margin-right: 50px">{$vips}</p>
+
 {* Level 1: Inspection / Consistoire réformé *}
 {foreach from=$hierarchy key=inspectionName item=inspectionDetails}
     {if !empty($inspectionName)}
@@ -227,5 +229,5 @@
 
 {/foreach}
 
-<p>{$vips}</p>
+
 

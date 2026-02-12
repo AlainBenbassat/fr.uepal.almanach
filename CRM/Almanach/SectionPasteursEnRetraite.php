@@ -80,6 +80,21 @@ class CRM_Almanach_SectionPasteursEnRetraite {
         is_deceased = 0
       and
         statut = 3
+      and
+        exists (
+            select
+              et.id
+            from 
+              civicrm_entity_tag et
+            inner join
+              civicrm_tag t on t.id = et.tag_id
+            where
+              et.entity_id = c.id
+            and 
+              et.entity_table = 'civicrm_contact'
+            and
+              t.label in ('Ministère : Pasteur·e', 'Ministère : Pasteur·e auxiliaire')
+        )      
       group by
         $groupByFields
       order by

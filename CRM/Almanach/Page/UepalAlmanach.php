@@ -7,13 +7,19 @@ class CRM_Almanach_Page_UepalAlmanach extends CRM_Core_Page {
 
     CRM_Utils_System::setTitle("Union des Églises protestantes d'Alsace et de Lorraine");
 
-    $s = new CRM_Almanach_SectionPasteursAutresMinistres();
+    $s = new CRM_Almanach_SectionPasteurs();
+    $sections[] = $s->data;
+
+    $s = new CRM_Almanach_SectionAutresMinistres();
     $sections[] = $s->data;
 
     $s = new CRM_Almanach_SectionPredicateursLaiques();
     $sections[] = $s->data;
 
     $s = new CRM_Almanach_SectionPasteursEnRetraite();
+    $sections[] = $s->data;
+
+    $s = new CRM_Almanach_SectionAutresMinistresEnRetraite();
     $sections[] = $s->data;
 
     $s = new CRM_Almanach_SectionVeufsDePasteurs();

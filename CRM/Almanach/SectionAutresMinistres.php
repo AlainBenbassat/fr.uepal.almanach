@@ -1,10 +1,10 @@
 <?php
 
-class CRM_Almanach_SectionPasteursAutresMinistres {
+class CRM_Almanach_SectionAutresMinistres {
   public $data = [];
 
   public function __construct() {
-    $this->data['title'] = 'Pasteur•es et autres ministres de l’UEPAL';
+    $this->data['title'] = 'Autres ministres de l’UEPAL';
     $this->data['subsections'] = [];
     $this->data['subsections'][] = [
       'title' => '',
@@ -87,6 +87,21 @@ class CRM_Almanach_SectionPasteursAutresMinistres {
         is_deceased = 0
       and
         statut = 1
+      and
+        not exists (
+            select
+              et.id
+            from 
+              civicrm_entity_tag et
+            inner join
+              civicrm_tag t on t.id = et.tag_id
+            where
+              et.entity_id = c.id
+            and 
+              et.entity_table = 'civicrm_contact'
+            and
+              t.label in ('Ministère : Pasteur·e', 'Ministère : Pasteur·e auxiliaire')
+        )
       group by
         $groupByFields
       order by

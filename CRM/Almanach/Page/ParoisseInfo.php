@@ -52,12 +52,12 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       if ($paroisseDetail['paroisse_detail.inspection_consistoire_reforme']) {
         // we don't need to get the return value, isVIP = TRUE argument will add the id to the VIP list
         $relType = $this->config->getRelationshipType_estInspecteurEcclesiastiqueDe();
-        $this->getContacts($paroisseDetail['paroisse_detail.inspection_consistoire_reforme'], $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
+        $this->getContacts($paroisseDetail['paroisse_detail.inspection_consistoire_reforme'], $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE);
       }
 
       if ($paroisseDetail['paroisse_detail.consistoire_lutherien']) {
         $relType = $this->config->getRelationshipType_estPresidentDe();
-        $this->getContacts($paroisseDetail['paroisse_detail.consistoire_lutherien'], $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
+        $this->getContacts($paroisseDetail['paroisse_detail.consistoire_lutherien'], $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE);
       }
     }
   }
@@ -83,7 +83,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     $paroisseDetail['managementArr'] = $this->getParoisseManagement($paroisseId);
 
     $relType = $this->config->getRelationshipType_estMembreDeDroitDe();
-    $paroisseDetail['rightMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE);
+    $paroisseDetail['rightMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), TRUE);
 
     $relType = $this->config->getRelationshipType_estMembreEluDe();
     $paroisseDetail['electedMembersArr'] = $this->getContacts($paroisseId, $relType['id'], str_replace('a pour ', '', $relType['label_b_a']), FALSE, $numPresbyt);
