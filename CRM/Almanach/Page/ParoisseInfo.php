@@ -26,10 +26,16 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
       CRM_Utils_System::setTitle('');
 
       $this->assign('hierarchy', $this->buildHierarchy());
-      $this->assign('vips', $this->getVIPids());
+
+      if ($this->isPageViewedFromBackend()) {
+        $this->assign('vips', $this->getVIPids());
+      }
+      else {
+        $this->assign('vips', '');
+      }
     }
     catch (Exception $e) {
-      CRM_Core_Session::setStatus($e->getMessage());
+     CRM_Core_Session::setStatus($e->getMessage());
     }
 
     parent::run();
@@ -548,6 +554,20 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
     }
     else {
       return 0;
+    }
+  }
+
+  private function isPageViewedFromBackend() {
+    $position = strpos($_SERVER['REQUEST_URI'], '/wp-admin/admin.php');
+    if ($position === FALSE) {
+      return false;
+    }
+
+    if ($position === 0) {
+      return true;
+    }
+    else {
+      return false;
     }
   }
 }
