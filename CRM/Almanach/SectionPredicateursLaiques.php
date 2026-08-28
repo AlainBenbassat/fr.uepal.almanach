@@ -76,8 +76,6 @@ class CRM_Almanach_SectionPredicateursLaiques {
       left outer join
         civicrm_email e on e.contact_id = c.id and e.is_primary = 1
       where
-        ifnull(contact_sub_type, '') = ''
-      and
         r.is_active = 1
       and
         is_deleted = 0
