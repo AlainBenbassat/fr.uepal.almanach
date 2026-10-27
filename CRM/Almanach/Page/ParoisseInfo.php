@@ -43,7 +43,7 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
 
   private function getVIPids() {
     $href = CRM_Utils_System::url('civicrm/contact/email', 'reset=1&cid=' . implode(',', $this->vips));
-    $msg = '<a href="' . $href . '">Envoyer un mail aux VIPs</a>';
+    $msg = '<a href="' . $href . '">Envoyer un e-mail aux VIPs</a>';
     return $msg;
   }
 
