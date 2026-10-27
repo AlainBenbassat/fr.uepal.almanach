@@ -390,6 +390,8 @@ class CRM_Almanach_Page_ParoisseInfo extends CRM_Core_Page {
         where
           ex_r.contact_id_a = r.contact_id_a
         and
+          ex_r.contact_id_b = $paroisseId
+        and
           ex_r.relationship_type_id = r.relationship_type_id
         and
           ex_r.is_active = 0
